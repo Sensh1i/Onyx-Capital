@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finans Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="loginScreen" class="container">
+        <div class="card login-card">
+            <h2>Finans Giriş</h2>
+            <input type="email" id="email" placeholder="E-posta" value="test@test.com">
+            <input type="password" id="password" placeholder="Şifre" value="1234">
+            <button onclick="login()">Giriş Yap</button>
+            <button onclick="showRegisterModal()" class="btn-outline">Kayıt Ol</button>
+            <p id="msg" style="color:red; margin-top:10px;"></p>
+        </div>
+    </div>
+
+    <!-- Registration Modal -->
+    <div id="registerModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeRegisterModal()">&times;</span>
+            <h2>Yeni Hesap Oluştur</h2>
+            <input type="text" id="regName" placeholder="Ad Soyad" required>
+            <input type="email" id="regEmail" placeholder="E-posta" required>
+            <input type="password" id="regPassword" placeholder="Şifre" required>
+            <input type="password" id="regPasswordConfirm" placeholder="Şifre Tekrar" required>
+            <button onclick="register()" class="btn-primary">Kayıt Ol</button>
+            <p id="regMsg" style="color:red; margin-top:10px; font-size:12px;"></p>
+        </div>
+    </div>
+
+    <div id="dashboardScreen" class="dashboard-wrapper" style="display:none;">
+        <!-- Top Navigation Bar -->
+        <nav class="top-nav">
+            <div class="nav-left">
+                <h1 class="logo">💰 FinansPRO</h1>
+            </div>
+            <div class="nav-right">
+                <div class="user-info">
+                    <div class="user-avatar">👤</div>
+                    <div class="user-details">
+                        <span class="user-name" id="userName">Kullanıcı</span>
+                        <span class="user-email" id="userEmail">user@example.com</span>
+                    </div>
+                    <button onclick="logout()" class="btn-logout">Çıkış</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card income-card">
+                <div class="stat-icon">📈</div>
+                <div class="stat-content">
+                    <h3>Toplam Gelir</h3>
+                    <span id="incomeVal" class="stat-value green">0 ₺</span>
+                    <span id="incomeChange" class="stat-change positive">- bu ay</span>
+                </div>
+            </div>
+            <div class="stat-card expense-card">
+                <div class="stat-icon">📉</div>
+                <div class="stat-content">
+                    <h3>Toplam Gider</h3>
+                    <span id="expenseVal" class="stat-value red">0 ₺</span>
+                    <span id="expenseChange" class="stat-change negative">- bu ay</span>
+                </div>
+            </div>
+            <div class="stat-card net-card">
+                <div class="stat-icon">💵</div>
+                <div class="stat-content">
+                    <h3>Net Gelir</h3>
+                    <span id="netVal" class="stat-value">0 ₺</span>
+                    <span id="netChange" class="stat-change positive">- bu ay</span>
+                </div>
+            </div>
+            <div class="stat-card invest-card">
+                <div class="stat-icon">💎</div>
+                <div class="stat-content">
+                    <h3>Yatırım Değeri</h3>
+                    <span id="investVal" class="stat-value">0 ₺</span>
+                    <span id="investChange" class="stat-change positive">- bu ay</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Charts Grid -->
+        <div class="charts-grid">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h3>📊 Gelir-Gider Trendi</h3>
+                    <select class="time-selector" id="timeRange">
+                        <option value="7">Son 7 Gün</option>
+                        <option value="30" selected>Son 30 Gün</option>
+                        <option value="90">Son 3 Ay</option>
+                    </select>
+                </div>
+                <canvas id="mainChart"></canvas>
+            </div>
+            
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h3>🥧 Kategori Dağılımı</h3>
+                </div>
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Secondary Grid -->
+        <div class="secondary-grid">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h3>📅 Aylık Karşılaştırma</h3>
+                </div>
+                <canvas id="monthlyChart"></canvas>
+            </div>
+
+            <div class="card form-box">
+                <div class="card-header">
+                    <h3>➕ Yeni İşlem Ekle</h3>
+                </div>
+                <select id="tType">
+                    <option value="income">💰 Gelir</option>
+                    <option value="expense">💸 Gider</option>
+                </select>
+                <input type="text" id="tCat" placeholder="Kategori (Örn: Market, Maaş)">
+                <input type="number" id="tAmount" placeholder="Tutar (₺)">
+                <button onclick="addTransaction()" class="btn-primary">Kaydet</button>
+            </div>
+        </div>
+
+        <!-- Bottom Grid -->
+        <div class="bottom-grid">
+            <div class="card">
+                <div class="card-header">
+                    <h3>📈 Yatırım Portföyü</h3>
+                    <button onclick="exportData()" class="btn-icon">📥</button>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="invName" placeholder="Hisse/Coin Adı">
+                    <input type="number" id="invAmount" placeholder="Adet">
+                    <input type="number" id="invValue" placeholder="Toplam Değer (₺)">
+                    <button onclick="addInvestment()" class="btn-small">Ekle</button>
+                </div>
+                <ul id="investList" class="investment-list"></ul>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>📋 Son İşlemler</h3>
+                </div>
+                <ul id="recentTransactions" class="transaction-list"></ul>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>🎯 Hızlı İstatistikler</h3>
+                </div>
+                <div class="quick-stats">
+                    <div class="quick-stat-item">
+                        <span class="quick-stat-label">Ortalama Günlük Gelir</span>
+                        <span class="quick-stat-value" id="avgDailyIncome">0 ₺</span>
+                    </div>
+                    <div class="quick-stat-item">
+                        <span class="quick-stat-label">En Çok Harcama Kategorisi</span>
+                        <span class="quick-stat-value" id="topCategory">-</span>
+                    </div>
+                    <div class="quick-stat-item">
+                        <span class="quick-stat-label">Bu Ay Toplam İşlem</span>
+                        <span class="quick-stat-value" id="monthlyTransactions">0</span>
+                    </div>
+                    <div class="quick-stat-item">
+                        <span class="quick-stat-label">Tasarruf Oranı</span>
+                        <span class="quick-stat-value" id="savingsRate">0%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
